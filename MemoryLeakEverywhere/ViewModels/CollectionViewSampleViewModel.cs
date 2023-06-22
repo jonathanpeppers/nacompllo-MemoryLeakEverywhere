@@ -9,7 +9,7 @@ namespace MemoryLeakEverywhere.ViewModels
         private bool randomBool = true;
         public CollectionViewSampleViewModel()
         {
-            LoadData();
+            RandomItems = LoadData();
         }
 
         public ICommand ChangeCategoryCommand => new Command(() => ChangeCategory());
@@ -44,12 +44,15 @@ namespace MemoryLeakEverywhere.ViewModels
 
         private void ChangeCategory()
         {
-            RandomItems.Clear();
-            LoadData();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            RandomItems = LoadData();
         }
 
-        private void LoadData()
+        private ObservableCollection<RandomItem> LoadData()
         {
+            var items = new ObservableCollection<RandomItem>();
             var rnd = new Random();
             var itemsNumber = rnd.Next(25, 50);
 
@@ -57,12 +60,13 @@ namespace MemoryLeakEverywhere.ViewModels
             {
                 randomBool = !randomBool;
                 var randomImage = i % 2 == 0 && randomBool ? "dotnet_bot" : "monkey";
-                RandomItems.Add(new RandomItem
+                items.Add(new RandomItem
                 {
                     Name = $"Item {i}",
                     Image = randomImage
                 });
             }
+            return items;
         }
     }
 }
